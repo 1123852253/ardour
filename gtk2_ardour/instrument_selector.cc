@@ -111,6 +111,9 @@ InstrumentSelector::build_instrument_list()
 #ifdef LV2_SUPPORT
 	all_plugs.insert(all_plugs.end(), manager.lv2_plugin_info().begin(), manager.lv2_plugin_info().end());
 #endif
+#ifdef VST3_SUPPORT
+	all_plugs.insert(all_plugs.end(), manager.vst3_plugin_info().begin(), manager.vst3_plugin_info().end());
+#endif
 
 	all_plugs.remove_if (invalid_instrument);
 	all_plugs.sort (pluginsort);

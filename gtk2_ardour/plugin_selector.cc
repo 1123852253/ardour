@@ -216,12 +216,18 @@ PluginSelector::PluginSelector (PluginManager& mgr)
 
 	//_fil_type_combo = manage (new ComboBoxText);
 	_fil_type_combo.append_text_item (_("Show All Formats"));
+
+#if (defined WINDOWS_VST_SUPPORT || defined LXVST_SUPPORT || defined MACVST_SUPPORT)
 	_fil_type_combo.append_text_item (X_("VST"));
+#endif
 #ifdef AUDIOUNIT_SUPPORT
 	_fil_type_combo.append_text_item (X_("AudioUnit"));
 #endif
 #ifdef LV2_SUPPORT
 	_fil_type_combo.append_text_item (X_("LV2"));
+#endif
+#ifdef VST3_SUPPORT
+	_fil_type_combo.append_text_item (X_("VST3"));
 #endif
 	_fil_type_combo.append_text_item (X_("Lua"));
 	_fil_type_combo.append_text_item (X_("LADSPA"));
@@ -434,11 +440,13 @@ PluginSelector::show_this_plugin (const PluginInfoPtr& info, const std::string& 
 		return false;
 	}
 
-#ifdef LV2_SUPPORT
+	if (_fil_type_combo.get_text() == X_("VST3") && info->type != VST3) {
+		return false;
+	}
+
 	if (_fil_type_combo.get_text() == X_("LV2") && info->type != LV2) {
 		return false;
 	}
-#endif
 
 	if (_fil_type_combo.get_text() == X_("Lua") && info->type != Lua) {
 		return false;
@@ -520,6 +528,7 @@ PluginSelector::refill ()
 	mac_vst_refiller (searchstr);
 	au_refiller (searchstr);
 	lua_refiller (searchstr);
+	vst3_refiller (searchstr);
 
 	in_row_change = false;
 
@@ -624,11 +633,7 @@ PluginSelector::lv2_refiller (const std::string& searchstr)
 }
 
 void
-#ifdef WINDOWS_VST_SUPPORT
 PluginSelector::vst_refiller (const std::string& searchstr)
-#else
-PluginSelector::vst_refiller (const std::string&)
-#endif
 {
 #ifdef WINDOWS_VST_SUPPORT
 	refiller (manager.windows_vst_plugin_info(), searchstr, "VST");
@@ -636,11 +641,7 @@ PluginSelector::vst_refiller (const std::string&)
 }
 
 void
-#ifdef LXVST_SUPPORT
 PluginSelector::lxvst_refiller (const std::string& searchstr)
-#else
-PluginSelector::lxvst_refiller (const std::string&)
-#endif
 {
 #ifdef LXVST_SUPPORT
 	refiller (manager.lxvst_plugin_info(), searchstr, "LXVST");
@@ -648,11 +649,7 @@ PluginSelector::lxvst_refiller (const std::string&)
 }
 
 void
-#ifdef MACVST_SUPPORT
 PluginSelector::mac_vst_refiller (const std::string& searchstr)
-#else
-PluginSelector::mac_vst_refiller (const std::string&)
-#endif
 {
 #ifdef MACVST_SUPPORT
 	refiller (manager.mac_vst_plugin_info(), searchstr, "MacVST");
@@ -660,11 +657,15 @@ PluginSelector::mac_vst_refiller (const std::string&)
 }
 
 void
-#ifdef AUDIOUNIT_SUPPORT
-PluginSelector::au_refiller (const std::string& searchstr)
-#else
-PluginSelector::au_refiller (const std::string&)
+PluginSelector::vst3_refiller (const std::string& searchstr)
+{
+#ifdef VST3_SUPPORT
+	refiller (manager.vst3_plugin_info(), searchstr, "VST3");
 #endif
+}
+
+void
+PluginSelector::au_refiller (const std::string& searchstr)
 {
 #ifdef AUDIOUNIT_SUPPORT
 	refiller (manager.au_plugin_info(), searchstr, "AU");
@@ -946,6 +947,9 @@ PluginSelector::build_plugin_menu ()
 #ifdef MACVST_SUPPORT
 	all_plugs.insert (all_plugs.end(), manager.mac_vst_plugin_info().begin(), manager.mac_vst_plugin_info().end());
 #endif
+#ifdef VST3_SUPPORT
+	all_plugs.insert (all_plugs.end(), manager.vst3_plugin_info().begin(), manager.vst3_plugin_info().end());
+#endif
 #ifdef AUDIOUNIT_SUPPORT
 	all_plugs.insert (all_plugs.end(), manager.au_plugin_info().begin(), manager.au_plugin_info().end());
 #endif
@@ -998,6 +1002,9 @@ GetPluginTypeStr(PluginInfoPtr info)
 	case LXVST:
 	case MacVST:
 		type = X_(" (VST)");
+		break;
+	case VST3:
+		type = X_(" (VST3)");
 		break;
 	case Lua:
 		type = X_(" (Lua)");
