@@ -35,6 +35,7 @@ function factory () return function ()
 		if (t == ARDOUR.PluginType.LXVST) then return "VST" end
 		if (t == ARDOUR.PluginType.MacVST) then return "VST" end
 		if (t == ARDOUR.PluginType.Lua) then return "Lua" end
+		if (t == ARDOUR.PluginType.VST3) then return "VST3" end
 		return "??"
 	end
 

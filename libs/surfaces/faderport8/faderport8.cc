@@ -1443,7 +1443,10 @@ static std::string plugintype (ARDOUR::PluginType t) {
 			return "VST";
 		case Lua:
 			return "Lua";
+		case VST3:
+			return "VST3";
 		default:
+			assert (0);
 			break;
 	}
 	return enum_2_string (t);
