@@ -117,6 +117,7 @@
 #endif
 
 #ifdef VST3_SUPPORT
+#include "ardour/vst3_module.h"
 #include "ardour/vst3_plugin.h"
 #endif
 
@@ -1544,6 +1545,13 @@ PluginManager::vst3_discover (string const& path, bool cache_only)
 	}
 	ARDOUR::PluginScanMessage(_("VST3"), module_path, !(cache_only || cancelled()));
 	DEBUG_TRACE (DEBUG::PluginManager, string_compose ("VST3: discover %1 (%2)\n", path, module_path));
+
+	try {
+		boost::shared_ptr<VST3PluginModule> m = VST3PluginModule::load (module_path);
+	} catch (...) {
+		DEBUG_TRACE (DEBUG::PluginManager, string_compose ("Cannot load VST3 at '%1'\n", path));
+		return -1;
+	}
 
 	return 0;
 }
