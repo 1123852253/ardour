@@ -119,6 +119,7 @@
 #ifdef VST3_SUPPORT
 #include "ardour/vst3_module.h"
 #include "ardour/vst3_plugin.h"
+#include "ardour/vst3_scan.h"
 #endif
 
 #include "pbd/error.h"
@@ -1548,11 +1549,36 @@ PluginManager::vst3_discover (string const& path, bool cache_only)
 
 	try {
 		boost::shared_ptr<VST3PluginModule> m = VST3PluginModule::load (module_path);
+		std::vector<VST3Info> nfo;
+		discover_vst3 (m, nfo);
+		for (std::vector<VST3Info>::const_iterator i = nfo.begin(); i != nfo.end(); ++i) {
+			PluginInfoPtr info (new VST3PluginInfo ());
+
+			info->path      = module_path;
+			info->index     = i->index;
+			info->unique_id = i->uid;
+			info->name      = i->name;
+			info->category  = i->category; // TODO process split at "|" -> tags
+			info->creator   = i->vendor;
+			info->n_inputs  = ChanCount();
+			info->n_outputs = ChanCount();
+
+			info->n_inputs.set_audio (i->n_inputs + i->n_aux_inputs);
+			info->n_inputs.set_midi (i->n_midi_inputs);
+
+			info->n_outputs.set_audio (i->n_outputs + i->n_aux_outputs);
+			info->n_outputs.set_midi (i->n_midi_outputs);
+
+			_vst3_plugin_info->push_back (info);
+
+			if (!info->category.empty ()) {
+				set_tags (info->type, info->unique_id, info->category, info->name, FromPlug);
+			}
+		}
 	} catch (...) {
 		DEBUG_TRACE (DEBUG::PluginManager, string_compose ("Cannot load VST3 at '%1'\n", path));
 		return -1;
 	}
-
 	return 0;
 }
 
