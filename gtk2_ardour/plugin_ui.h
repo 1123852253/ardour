@@ -379,6 +379,7 @@ private:
 	bool create_mac_vst_editor(boost::shared_ptr<ARDOUR::PluginInsert>);
 	bool create_audiounit_editor (boost::shared_ptr<ARDOUR::PluginInsert>);
 	bool create_lv2_editor (boost::shared_ptr<ARDOUR::PluginInsert>);
+	bool create_vst3_editor (boost::shared_ptr<ARDOUR::PluginInsert>);
 };
 
 #ifdef MACVST_SUPPORT
